@@ -59,7 +59,7 @@ echo "Installing dependencies..."
 case "$OS" in
     "Ubuntu"|"Ubuntu "*|"Debian GNU/Linux"|"Debian")
         apt-get update
-        apt-get install -y build-essential libjansson-dev libncursesw5-dev nvidia-cuda-toolkit
+        apt-get install -y build-essential libjansson-dev libncursesw5-dev libnvidia-ml-dev
         ;;
     "Rocky Linux"|"CentOS Linux"|"Red Hat Enterprise Linux"|"Fedora"|"Fedora Linux")
         dnf install -y gcc make jansson-devel ncurses-devel

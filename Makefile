@@ -7,12 +7,21 @@ BINDIR   = $(PREFIX)/bin
 CONFDIR  = /etc/nvfd
 UNITDIR  = /etc/systemd/system
 
-# NVIDIA CUDA paths (try standard locations)
-CUDA_PATH ?= $(shell [ -d /usr/local/cuda ] && echo /usr/local/cuda || echo /usr)
-CFLAGS  += -I$(CUDA_PATH)/include -Iinclude
+# NVIDIA CUDA paths — only add a -L/-I pair when a standalone CUDA install is
+# present. On Debian/Ubuntu the distro packages land in default paths, so a
+# bogus -L/usr/lib64 just masks the real problem.
+CUDA_PATH ?= $(shell [ -d /usr/local/cuda ] && echo /usr/local/cuda)
+ifneq ($(CUDA_PATH),)
+CFLAGS  += -I$(CUDA_PATH)/include
 LDFLAGS += -L$(CUDA_PATH)/lib64
+endif
+CFLAGS  += -Iinclude
 
-LIBS     = -lnvidia-ml -ljansson -lncursesw
+# Link against the driver-shipped versioned SONAME directly. `-lnvidia-ml`
+# needs a `libnvidia-ml.so` dev symlink, which Ubuntu's libnvidia-ml-dev does
+# not provide — the versioned `libnvidia-ml.so.1` is installed by the driver
+# package and is always present on any system that can run nvfd.
+LIBS     = -l:libnvidia-ml.so.1 -ljansson -lncursesw
 
 SRCDIR   = src
 BUILDDIR = build
