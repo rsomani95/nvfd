@@ -1,13 +1,15 @@
 [Unit]
 Description=NVFD - NVIDIA Fan Daemon
-After=multi-user.target nvidia-persistenced.service
+After=nvidia-persistenced.service
 Wants=nvidia-persistenced.service
+# A fan daemon must never give up — keep retrying so the GPUs are never left uncontrolled.
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 ExecStart=/usr/local/bin/nvfd
 ExecReload=/bin/kill -HUP $MAINPID
-Restart=on-failure
+Restart=always
 RestartSec=5
 
 # Security hardening
@@ -23,7 +25,9 @@ MemoryDenyWriteExecute=yes
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
 LockPersonality=yes
-ProtectClock=yes
+# ProtectClock removed: it injects an implicit DeviceAllow=char-rtc which, under
+# DevicePolicy=auto, turns device access into a whitelist that blocks /dev/nvidia*
+# — nvmlInit() then fails and the daemon crash-loops (status=1, never activates at boot).
 RestrictNamespaces=yes
 RestrictAddressFamilies=AF_UNIX
 ProtectHostname=yes
